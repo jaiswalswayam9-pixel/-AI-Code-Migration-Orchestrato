@@ -13,8 +13,8 @@ backend/workspace/
 workspace/
 backend/*.db
 backend/*.sqlite*
-generated_projects/
-reports/
+/generated_projects/
+/reports/
 
 # Python cache
 __pycache__/
