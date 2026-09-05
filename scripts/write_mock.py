@@ -1,4 +1,7 @@
-export const MOCK_SAMPLES = [
+# Python generator for mockData.ts
+import json
+
+content = """export const MOCK_SAMPLES = [
   {
     id: "basic_calculator",
     name: "Basic Calculator",
@@ -692,3 +695,8 @@ describe("Calculator", () => {
     },
   ],
 };
+"""
+
+with open("frontend/src/services/mockData.ts", "w", encoding="utf-8") as f:
+    f.write(content)
+print("Successfully generated frontend/src/services/mockData.ts")

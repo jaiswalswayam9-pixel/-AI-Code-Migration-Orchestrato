@@ -10,7 +10,9 @@ export class ApiError extends Error {
 
 const BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || "";
 
-function handleStaticFallback<T>(path: string, _options?: RequestInit): T {
+function handleStaticFallback<T>(path: string, options?: RequestInit): T {
+  const targetLang = (typeof window !== "undefined" ? sessionStorage.getItem("current_target_language") || "python" : "python").toLowerCase();
+
   if (path.includes("/api/projects/samples")) {
     return { samples: MOCK_SAMPLES } as unknown as T;
   }
@@ -29,19 +31,28 @@ function handleStaticFallback<T>(path: string, _options?: RequestInit): T {
     return p as unknown as T;
   }
   if (path.includes("/api/migrations/start")) {
+    if (options?.body) {
+      try {
+        const parsed = JSON.parse(options.body as string);
+        if (parsed.target_language && typeof window !== "undefined") {
+          sessionStorage.setItem("current_target_language", parsed.target_language);
+        }
+      } catch {}
+    }
     return { migration_id: "demo-mig-1", status: "in_progress" } as unknown as T;
   }
   if (path.includes("/status")) {
     return { status: "success", current_step: "completed" } as unknown as T;
   }
   if (path.includes("/plan")) {
+    const langLabel = targetLang === "kotlin" ? "Kotlin" : targetLang === "typescript" ? "TypeScript (Node)" : "Python (FastAPI)";
     return {
       plan: [
         { phase: 1, name: "AST Extraction", description: "Parse Java source into IR models", status: "completed" },
         { phase: 2, name: "Architecture Detection", description: "Identify Spring Boot & MVC patterns", status: "completed" },
-        { phase: 3, name: "Dependency Translation", description: "Generate requirements.txt manifest", status: "completed" },
-        { phase: 4, name: "Target Code Generation", description: "Produce idiomatic Python/FastAPI code", status: "completed" },
-        { phase: 5, name: "Test Fixture Migration", description: "Translate JUnit tests to PyTest", status: "completed" },
+        { phase: 3, name: "Dependency Translation", description: `Generate ${targetLang === "kotlin" ? "build.gradle.kts" : targetLang === "typescript" ? "package.json" : "requirements.txt"} manifest`, status: "completed" },
+        { phase: 4, name: "Target Code Generation", description: `Produce idiomatic ${langLabel} code`, status: "completed" },
+        { phase: 5, name: "Test Fixture Migration", description: `Translate JUnit tests to ${targetLang === "kotlin" ? "KotlinTest" : targetLang === "typescript" ? "Jest" : "PyTest"}`, status: "completed" },
         { phase: 6, name: "Self-Repair & Validation", description: "Validate syntax, type coverage, and logic", status: "completed" }
       ],
       complexity: "Medium"
@@ -54,9 +65,9 @@ function handleStaticFallback<T>(path: string, _options?: RequestInit): T {
         { agent_name: "architecture", status: "completed", message: "Architecture mapped: Clean OOP Architecture" },
         { agent_name: "planner", status: "completed", message: "Generated 6-phase migration plan" },
         { agent_name: "dependency", status: "completed", message: "Dependency manifest generated" },
-        { agent_name: "translator", status: "completed", message: "Source code translated to target language" },
-        { agent_name: "test_migration", status: "completed", message: "PyTest test suite generated" },
-        { agent_name: "refactoring", status: "completed", message: "Applied PEP 8 standards and cleanup" },
+        { agent_name: "translator", status: "completed", message: `Source code translated to ${targetLang}` },
+        { agent_name: "test_migration", status: "completed", message: "Unit test suite generated" },
+        { agent_name: "refactoring", status: "completed", message: `Applied ${targetLang} language standards and cleanup` },
         { agent_name: "repair", status: "completed", message: "Build validation passed without errors" },
         { agent_name: "validation", status: "completed", message: "Quality Score: 98.5% (100% completeness)" },
         { agent_name: "report", status: "completed", message: "Generated side-by-side diffs and report" }
@@ -67,18 +78,14 @@ function handleStaticFallback<T>(path: string, _options?: RequestInit): T {
     return { migration_id: "demo-mig-1", approved: true, status: "in_progress" } as unknown as T;
   }
   if (path.includes("/files/")) {
+    const diffList = MOCK_DIFFS[targetLang] || MOCK_DIFFS.python;
     return {
-      files: [
-        { path: "basic_calculator/com/example/calculator/calculator.py", size: 856 },
-        { path: "basic_calculator/com/example/calculator/operation.py", size: 452 },
-        { path: "tests/test_calculator.py", size: 406 },
-        { path: "requirements.txt", size: 109 }
-      ],
-      total: 4
+      files: diffList.map((d: any) => ({ path: d.file_path, size: d.migrated_code?.length || 300 })),
+      total: diffList.length
     } as unknown as T;
   }
   if (path.includes("/diff")) {
-    return { diffs: MOCK_DIFFS.python } as unknown as T;
+    return { diffs: MOCK_DIFFS[targetLang] || MOCK_DIFFS.python } as unknown as T;
   }
   if (path.includes("/validation")) {
     return {
@@ -96,17 +103,26 @@ function handleStaticFallback<T>(path: string, _options?: RequestInit): T {
     } as unknown as T;
   }
   if (path.includes("/tests")) {
+    let logs = "";
+    if (targetLang === "kotlin") {
+      logs = "com.example.calculator.CalculatorTest > testAdd() PASSED\ncom.example.calculator.CalculatorTest > testDivide() PASSED\ncom.example.calculator.CalculatorTest > testDivideByZero() PASSED\n\nBUILD SUCCESSFUL in 1.2s\n3 actionable tasks: 3 executed";
+    } else if (targetLang === "typescript") {
+      logs = "PASS tests/calculator.test.ts\n  Calculator\n    ✓ should add two numbers correctly (2 ms)\n    ✓ should divide two numbers correctly (1 ms)\n    ✓ should throw error on division by zero (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       3 passed, 3 total";
+    } else {
+      logs = "tests/test_calculator.py::test_calculator_add PASSED\ntests/test_calculator.py::test_calculator_divide PASSED\ntests/test_calculator.py::test_calculator_divide_by_zero PASSED\n\n======================== 3 passed in 0.04s ========================";
+    }
     return {
       status: "PASSED",
       passed: 3,
       failed: 0,
-      logs: "tests/test_calculator.py::test_calculator_add PASSED\ntests/test_calculator.py::test_calculator_divide PASSED\ntests/test_calculator.py::test_calculator_divide_by_zero PASSED\n\n======================== 3 passed in 0.04s ========================",
+      logs,
     } as unknown as T;
   }
   if (path.includes("/report")) {
+    const titleLang = targetLang.charAt(0).toUpperCase() + targetLang.slice(1);
     return {
-      report: "# Migration Report\n\n- **Source**: Java\n- **Target**: Python\n- **Quality Score**: 98.5%\n- **Status**: PASSED",
-      content: "# Migration Report\n\n- **Source**: Java\n- **Target**: Python\n- **Quality Score**: 98.5%\n- **Status**: PASSED",
+      report: `# Migration Report\n\n- **Source**: Java\n- **Target**: ${titleLang}\n- **Quality Score**: 98.5%\n- **Status**: PASSED`,
+      content: `# Migration Report\n\n- **Source**: Java\n- **Target**: ${titleLang}\n- **Quality Score**: 98.5%\n- **Status**: PASSED`,
     } as unknown as T;
   }
   if (path.includes("/errors")) {
