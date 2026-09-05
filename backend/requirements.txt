@@ -1,0 +1,13 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.8
+pydantic-settings>=2.4
+sqlalchemy>=2.0
+alembic>=1.13
+psycopg2-binary>=2.9
+langgraph>=0.2
+docker>=7.1
+gitpython>=3.1
+anthropic>=0.34
+python-multipart>=0.0.9
+pytest>=8.3

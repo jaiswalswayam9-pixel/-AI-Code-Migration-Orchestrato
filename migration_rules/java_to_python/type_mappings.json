@@ -1,0 +1,27 @@
+{
+  "type_mappings": {
+    "int": "int",
+    "long": "int",
+    "double": "float",
+    "float": "float",
+    "boolean": "bool",
+    "char": "str",
+    "byte": "int",
+    "short": "int",
+    "String": "str",
+    "Object": "object",
+    "Integer": "int",
+    "Long": "int",
+    "Double": "float",
+    "Boolean": "bool",
+    "Character": "str"
+  },
+  "container_templates": {
+    "list": "list[{0}]",
+    "set": "set[{0}]",
+    "map": "dict[{0}, {1}]",
+    "array": "list[{0}]"
+  },
+  "void_type": "None",
+  "any_type": "object"
+}

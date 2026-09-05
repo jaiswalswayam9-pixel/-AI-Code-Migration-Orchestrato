@@ -1,0 +1,1 @@
+# Agent Design\n\nEach agent is a pure function (WorkflowState) -> WorkflowState.\nSee backend/app/orchestrator/state.py for the shared state schema.\n

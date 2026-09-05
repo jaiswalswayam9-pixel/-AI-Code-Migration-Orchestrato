@@ -1,0 +1,1 @@
+# Migration Rules\n\nDeterministic type/collection mappings live in migration_rules/<pair>/type_mappings.json.\nFramework mappings populated starting Phase 10.\n

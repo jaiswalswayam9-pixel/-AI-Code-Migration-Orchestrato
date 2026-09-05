@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/venv/
+venv/
+.venv/
+
+# Build outputs
+frontend/dist/
+dist/
+build/
+backend/workspace/
+workspace/
+backend/*.db
+backend/*.sqlite*
+generated_projects/
+reports/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.class
+*.pyc
+.pytest_cache/
+
+# Java AST bridge compiled classes
+backend/app/parsers/java_ast_bridge/bin/
+*.class
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.log

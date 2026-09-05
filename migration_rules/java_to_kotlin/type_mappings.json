@@ -1,0 +1,27 @@
+{
+  "type_mappings": {
+    "int": "Int",
+    "long": "Long",
+    "double": "Double",
+    "float": "Float",
+    "boolean": "Boolean",
+    "char": "Char",
+    "byte": "Byte",
+    "short": "Short",
+    "String": "String",
+    "Object": "Any",
+    "Integer": "Int",
+    "Long": "Long",
+    "Double": "Double",
+    "Boolean": "Boolean",
+    "Character": "Char"
+  },
+  "container_templates": {
+    "list": "MutableList<{0}>",
+    "set": "MutableSet<{0}>",
+    "map": "MutableMap<{0}, {1}>",
+    "array": "Array<{0}>"
+  },
+  "void_type": "Unit",
+  "any_type": "Any"
+}

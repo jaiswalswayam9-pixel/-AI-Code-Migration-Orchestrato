@@ -1,0 +1,27 @@
+{
+  "type_mappings": {
+    "int": "number",
+    "long": "number",
+    "double": "number",
+    "float": "number",
+    "boolean": "boolean",
+    "char": "string",
+    "byte": "number",
+    "short": "number",
+    "String": "string",
+    "Object": "unknown",
+    "Integer": "number",
+    "Long": "number",
+    "Double": "number",
+    "Boolean": "boolean",
+    "Character": "string"
+  },
+  "container_templates": {
+    "list": "{0}[]",
+    "set": "Set<{0}>",
+    "map": "Map<{0}, {1}>",
+    "array": "{0}[]"
+  },
+  "void_type": "void",
+  "any_type": "any"
+}
