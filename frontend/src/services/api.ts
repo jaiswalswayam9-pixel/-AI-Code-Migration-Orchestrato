@@ -29,10 +29,53 @@ function handleStaticFallback<T>(path: string, _options?: RequestInit): T {
     return p as unknown as T;
   }
   if (path.includes("/api/migrations/start")) {
-    return { migration_id: "demo-mig-1", status: "success" } as unknown as T;
+    return { migration_id: "demo-mig-1", status: "in_progress" } as unknown as T;
   }
   if (path.includes("/status")) {
     return { status: "success", current_step: "completed" } as unknown as T;
+  }
+  if (path.includes("/plan")) {
+    return {
+      plan: [
+        { phase: 1, name: "AST Extraction", description: "Parse Java source into IR models", status: "completed" },
+        { phase: 2, name: "Architecture Detection", description: "Identify Spring Boot & MVC patterns", status: "completed" },
+        { phase: 3, name: "Dependency Translation", description: "Generate requirements.txt manifest", status: "completed" },
+        { phase: 4, name: "Target Code Generation", description: "Produce idiomatic Python/FastAPI code", status: "completed" },
+        { phase: 5, name: "Test Fixture Migration", description: "Translate JUnit tests to PyTest", status: "completed" },
+        { phase: 6, name: "Self-Repair & Validation", description: "Validate syntax, type coverage, and logic", status: "completed" }
+      ],
+      complexity: "Medium"
+    } as unknown as T;
+  }
+  if (path.includes("/agents")) {
+    return {
+      events: [
+        { agent_name: "analyzer", status: "completed", message: "AST analysis completed: 2 Java files parsed" },
+        { agent_name: "architecture", status: "completed", message: "Architecture mapped: Clean OOP Architecture" },
+        { agent_name: "planner", status: "completed", message: "Generated 6-phase migration plan" },
+        { agent_name: "dependency", status: "completed", message: "Dependency manifest generated" },
+        { agent_name: "translator", status: "completed", message: "Source code translated to target language" },
+        { agent_name: "test_migration", status: "completed", message: "PyTest test suite generated" },
+        { agent_name: "refactoring", status: "completed", message: "Applied PEP 8 standards and cleanup" },
+        { agent_name: "repair", status: "completed", message: "Build validation passed without errors" },
+        { agent_name: "validation", status: "completed", message: "Quality Score: 98.5% (100% completeness)" },
+        { agent_name: "report", status: "completed", message: "Generated side-by-side diffs and report" }
+      ]
+    } as unknown as T;
+  }
+  if (path.includes("/approve")) {
+    return { migration_id: "demo-mig-1", approved: true, status: "in_progress" } as unknown as T;
+  }
+  if (path.includes("/files/")) {
+    return {
+      files: [
+        { path: "basic_calculator/com/example/calculator/calculator.py", size: 856 },
+        { path: "basic_calculator/com/example/calculator/operation.py", size: 452 },
+        { path: "tests/test_calculator.py", size: 406 },
+        { path: "requirements.txt", size: 109 }
+      ],
+      total: 4
+    } as unknown as T;
   }
   if (path.includes("/diff")) {
     return { diffs: MOCK_DIFFS.python } as unknown as T;
@@ -80,13 +123,25 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       ...options,
     });
     if (!res.ok) {
-      if (res.status === 404 && !BASE_URL) {
+      if (!BASE_URL) {
         return handleStaticFallback<T>(path, options);
       }
       const body = await res.text();
       throw new ApiError(res.status, body || res.statusText);
     }
-    return res.json() as Promise<T>;
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("text/html")) {
+      return handleStaticFallback<T>(path, options);
+    }
+    const text = await res.text();
+    if (!text || text.trim().startsWith("<")) {
+      return handleStaticFallback<T>(path, options);
+    }
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      return handleStaticFallback<T>(path, options);
+    }
   } catch (err: any) {
     if (err instanceof ApiError) throw err;
     return handleStaticFallback<T>(path, options);
@@ -100,13 +155,25 @@ async function uploadFile<T>(path: string, file: File): Promise<T> {
     formData.append("file", file);
     const res = await fetch(fullUrl, { method: "POST", body: formData });
     if (!res.ok) {
-      if (res.status === 404 && !BASE_URL) {
+      if (!BASE_URL) {
         return handleStaticFallback<T>(path);
       }
       const body = await res.text();
       throw new ApiError(res.status, body || res.statusText);
     }
-    return res.json() as Promise<T>;
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("text/html")) {
+      return handleStaticFallback<T>(path);
+    }
+    const text = await res.text();
+    if (!text || text.trim().startsWith("<")) {
+      return handleStaticFallback<T>(path);
+    }
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      return handleStaticFallback<T>(path);
+    }
   } catch (err: any) {
     if (err instanceof ApiError) throw err;
     return handleStaticFallback<T>(path);
