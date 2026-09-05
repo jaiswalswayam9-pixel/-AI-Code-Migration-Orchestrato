@@ -35,9 +35,25 @@ export default function Migration() {
   }, [migrationId]);
 
   if (error) return <div className="p-8 text-red-600">Error: {error}</div>;
-  if (!status) return <div className="p-8 text-gray-500">Loading migration...</div>;
+  if (!status) return <div className="p-12 text-center text-gray-500 font-medium">Loading migration pipeline...</div>;
 
-  const isFinished = status.status !== "running" && status.status !== "pending";
+  const currentStatus = status.status || "running";
+  const isFinished = currentStatus !== "running" && currentStatus !== "pending";
+  const migIdStr = (status.migration_id || migrationId || "migration").toString();
+  const progress = status.progress || {
+    analyzer: true,
+    architecture: true,
+    planner: true,
+    dependency: true,
+    translator: true,
+    refactoring: true,
+    test_migration: true,
+    build: true,
+    repair: true,
+    testing: true,
+    validation: true,
+    report: true,
+  };
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
@@ -48,17 +64,17 @@ export default function Migration() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Migration {status.migration_id.slice(0, 8)}…
+            Migration {migIdStr.slice(0, 8)}…
           </h1>
           <div className="flex items-center gap-3 mt-2">
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              status.status === "success" ? "bg-green-100 text-green-700" :
-              status.status === "running" ? "bg-blue-100 text-blue-700" :
-              status.status === "partial" ? "bg-yellow-100 text-yellow-700" :
-              status.status === "failed" ? "bg-red-100 text-red-700" :
+              currentStatus === "success" ? "bg-green-100 text-green-700" :
+              currentStatus === "running" ? "bg-blue-100 text-blue-700" :
+              currentStatus === "partial" ? "bg-yellow-100 text-yellow-700" :
+              currentStatus === "failed" ? "bg-red-100 text-red-700" :
               "bg-gray-100 text-gray-700"
             }`}>
-              {status.status.toUpperCase()}
+              {currentStatus.toUpperCase()}
             </span>
             {!isFinished && (
               <span className="text-sm text-gray-500 animate-pulse">Pipeline running…</span>
@@ -68,13 +84,13 @@ export default function Migration() {
         {isFinished && (
           <div className="flex gap-3">
             <Link
-              to={`/results/${migrationId}`}
+              to={`/results/${migrationId || migIdStr}`}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
             >
               View Results
             </Link>
             <Link
-              to={`/report/${migrationId}`}
+              to={`/report/${migrationId || migIdStr}`}
               className="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition"
             >
               View Report
@@ -88,7 +104,7 @@ export default function Migration() {
         <h2 className="text-lg font-semibold mb-4">Pipeline Progress</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {STEPS.map((step) => {
-            const done = status.progress[step];
+            const done = Boolean(progress[step]);
             return (
               <div
                 key={step}
@@ -109,8 +125,8 @@ export default function Migration() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AgentActivity migrationId={migrationId!} />
-        <MigrationPlan migrationId={migrationId!} />
+        <AgentActivity migrationId={migrationId || migIdStr} />
+        <MigrationPlan migrationId={migrationId || migIdStr} />
       </div>
     </div>
   );
